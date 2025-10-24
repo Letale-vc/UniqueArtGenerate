@@ -8,19 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            runtime: win-x64
-            artifact: UniqueArtGenerate-win-x64.exe
-          - os: ubuntu-latest
-            runtime: linux-x64
-            artifact: UniqueArtGenerate-linux-x64
-          - os: macos-latest
-            runtime: osx-x64
-            artifact: UniqueArtGenerate-osx-x64
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -32,44 +20,39 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore UniqueArtGenerate
+      run: dotnet restore UniqueArtGenerate/UniqueArtGenerate.csproj
 
     - name: Publish Native AOT
-      run: dotnet publish UniqueArtGenerate -c Release -r ${{ matrix.runtime }} --self-contained -o ./publish
+      run: dotnet publish UniqueArtGenerate/UniqueArtGenerate.csproj -c Release -r win-x64 --self-contained -o ./publish
 
-    - name: Rename artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      run: mv ./publish/UniqueArtGenerate.exe ./publish/${{ matrix.artifact }}
-      shell: bash
-
-    - name: Rename artifact (Unix)
-      if: matrix.os != 'windows-latest'
-      run: mv ./publish/UniqueArtGenerate ./publish/${{ matrix.artifact }}
+    - name: Rename artifact
+      run: Rename-Item -Path ./publish/UniqueArtGenerate.exe -NewName UniqueArtGenerate-win-x64.exe
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact }}
-        path: ./publish/${{ matrix.artifact }}
+        name: UniqueArtGenerate-win-x64
+        path: ./publish/UniqueArtGenerate-win-x64.exe
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
+    permissions:
+      contents: write
+    
     steps:
-    - name: Download all artifacts
+    - name: Download artifact
       uses: actions/download-artifact@v4
       with:
+        name: UniqueArtGenerate-win-x64
         path: ./artifacts
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: |
-          ./artifacts/UniqueArtGenerate-win-x64.exe/UniqueArtGenerate-win-x64.exe
-          ./artifacts/UniqueArtGenerate-linux-x64/UniqueArtGenerate-linux-x64
-          ./artifacts/UniqueArtGenerate-osx-x64/UniqueArtGenerate-osx-x64
+        files: ./artifacts/UniqueArtGenerate-win-x64.exe
         draft: false
         prerelease: false
         generate_release_notes: true

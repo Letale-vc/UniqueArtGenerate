@@ -4,10 +4,7 @@ Web scraper that extracts unique item names and their icon art paths from poedb.
 
 ## Download
 
-Get the latest release for your platform:
-- [Windows (x64)](../../releases/latest)
-- [Linux (x64)](../../releases/latest)
-- [macOS (x64)](../../releases/latest)
+Get the latest release: [Download for Windows](../../releases/latest)
 
 ## What it does
 
@@ -29,37 +26,25 @@ Each line: `ItemName;IconPath` (semicolon separated for easy parsing)
 
 ## How to run
 
-### Prebuilt binaries (recommended)
-1. Download the executable for your platform from [Releases](../../releases)
-2. Run it:
-   - **Windows**: Double-click `UniqueArtGenerate-win-x64.exe` or run in terminal
-   - **Linux/macOS**: `chmod +x UniqueArtGenerate-* && ./UniqueArtGenerate-*`
+### Prebuilt binary (recommended)
+1. Download `UniqueArtGenerate-win-x64.exe` from [Releases](../../releases)
+2. Run it (double-click or run in terminal)
+3. Wait for completion
+4. Check `unique_items_output.txt` in the same folder
 
 ### Build from source
 
-**Option 1: Run with .NET SDK**
+**Run with .NET SDK:**
 ```bash
 dotnet run --project UniqueArtGenerate
 ```
 
-**Option 2: Build Native AOT**
-
-Windows:
+**Build Native AOT:**
 ```bash
 dotnet publish UniqueArtGenerate -c Release -r win-x64
 ```
 
-Linux:
-```bash
-dotnet publish UniqueArtGenerate -c Release -r linux-x64
-```
-
-macOS:
-```bash
-dotnet publish UniqueArtGenerate -c Release -r osx-x64
-```
-
-Executable location: `UniqueArtGenerate\bin\Release\net8.0\{runtime}\publish\`
+Executable location: `UniqueArtGenerate\bin\Release\net8.0\win-x64\publish\UniqueArtGenerate.exe`
 
 ## For developers
 
@@ -72,7 +57,4 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The GitHub Action will automatically:
-- Build Native AOT binaries for Windows, Linux, and macOS
-- Create a GitHub release
-- Upload all binaries
+GitHub Actions will automatically build and create a release with the executable.

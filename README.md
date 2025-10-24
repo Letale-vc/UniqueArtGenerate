@@ -36,15 +36,15 @@ Each line: `ItemName;IconPath` (semicolon separated for easy parsing)
 
 **Run with .NET SDK:**
 ```bash
-dotnet run --project UniqueArtGenerate
+dotnet run
 ```
 
 **Build Native AOT:**
 ```bash
-dotnet publish UniqueArtGenerate -c Release -r win-x64
+dotnet publish -c Release -r win-x64
 ```
 
-Executable location: `UniqueArtGenerate\bin\Release\net8.0\win-x64\publish\UniqueArtGenerate.exe`
+Executable location: `bin\Release\net8.0\win-x64\publish\UniqueArtGenerate.exe`
 
 ## For developers
 

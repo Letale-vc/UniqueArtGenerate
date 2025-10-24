@@ -20,10 +20,10 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore UniqueArtGenerate/UniqueArtGenerate.csproj
+      run: dotnet restore
 
     - name: Publish Native AOT
-      run: dotnet publish UniqueArtGenerate/UniqueArtGenerate.csproj -c Release -r win-x64 --self-contained -o ./publish
+      run: dotnet publish -c Release -r win-x64 --self-contained -o ./publish
 
     - name: Rename artifact
       run: Rename-Item -Path ./publish/UniqueArtGenerate.exe -NewName UniqueArtGenerate-win-x64.exe

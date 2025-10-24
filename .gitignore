@@ -42,6 +42,9 @@ _ReSharper*/
 *.sln.iml
 .idea/
 
+# Publish profiles (optional - can be committed if shared across team)
+Properties/
+
 # Output files
 unique_items_output.txt
 

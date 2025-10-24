@@ -13,7 +13,7 @@ public class PoeDbScraper
     private const int MaxConcurrentRequests = 50; // Number of concurrent requests
     private readonly HttpClient _httpClient;
     private readonly IBrowsingContext _browsingContext;
-    private readonly ConcurrentDictionary<string, UniqueItem> _uniqueItems;
+    private readonly ConcurrentBag<UniqueItem> _uniqueItems;
     private int _processedCount = 0;
     private int _successCount = 0;
     private int _failedCount = 0;
@@ -28,7 +28,7 @@ public class PoeDbScraper
         var config = Configuration.Default;
         _browsingContext = BrowsingContext.New(config);
 
-        _uniqueItems = new ConcurrentDictionary<string, UniqueItem>();
+        _uniqueItems = new ConcurrentBag<UniqueItem>();
     }
 
     public async Task ScrapeUniquesAsync()
@@ -144,7 +144,6 @@ public class PoeDbScraper
 
     private async Task ScrapeUniqueItemAsync(string itemHref, string itemName)
     {
-        var processed = 0;
         try
         {
             // Use the href directly from the HTML
@@ -170,6 +169,8 @@ public class PoeDbScraper
                 }
             }
 
+            var processed = Interlocked.Increment(ref _processedCount);
+
             if (!string.IsNullOrEmpty(iconPath))
             {
                 var uniqueItem = new UniqueItem
@@ -178,25 +179,16 @@ public class PoeDbScraper
                     IconPath = iconPath
                 };
 
-                // Use TryAdd to avoid duplicates
-                if (_uniqueItems.TryAdd(itemName, uniqueItem))
-                {
-                    processed = Interlocked.Increment(ref _processedCount);
-                    Interlocked.Increment(ref _successCount);
+                _uniqueItems.Add(uniqueItem);
+                Interlocked.Increment(ref _successCount);
 
-                    lock (_consoleLock)
-                    {
-                        Console.WriteLine($"[{processed}/{_totalCount}] ✓ {itemName}");
-                    }
-                }
-                else
+                lock (_consoleLock)
                 {
-                    processed = Interlocked.Increment(ref _processedCount);
+                    Console.WriteLine($"[{processed}/{_totalCount}] ✓ {itemName}");
                 }
             }
             else
             {
-                processed = Interlocked.Increment(ref _processedCount);
                 Interlocked.Increment(ref _failedCount);
 
                 lock (_consoleLock)
@@ -207,7 +199,7 @@ public class PoeDbScraper
         }
         catch (TaskCanceledException)
         {
-            processed = Interlocked.Increment(ref _processedCount);
+            var processed = Interlocked.Increment(ref _processedCount);
             Interlocked.Increment(ref _failedCount);
 
             lock (_consoleLock)
@@ -217,7 +209,7 @@ public class PoeDbScraper
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            processed = Interlocked.Increment(ref _processedCount);
+            var processed = Interlocked.Increment(ref _processedCount);
             Interlocked.Increment(ref _failedCount);
 
             lock (_consoleLock)
@@ -227,7 +219,7 @@ public class PoeDbScraper
         }
         catch (Exception ex)
         {
-            processed = Interlocked.Increment(ref _processedCount);
+            var processed = Interlocked.Increment(ref _processedCount);
             Interlocked.Increment(ref _failedCount);
 
             lock (_consoleLock)
@@ -240,7 +232,7 @@ public class PoeDbScraper
     private async Task WriteOutputAsync(string filePath)
     {
         // Use semicolon as delimiter for easy parsing
-        var lines = _uniqueItems.Values
+        var lines = _uniqueItems
             .OrderBy(item => item.Name)
             .Select(item => $"{item.Name};{item.IconPath}");
 
